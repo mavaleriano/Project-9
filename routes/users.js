@@ -111,18 +111,27 @@ router.post('/users', [
   else {
     let user;
     try{
-      console.log(req.body);
+      req.body.password = await bcryptjs.hash(req.body.password, 10);
       user = await User.create(req.body);
-      res.status(201).end();
+      //user.password = await bcryptjs.hash(user.password, 10);
+      
+      // https://expressjs.com/en/api.html#res
+      res.status(201).location('/').end();
     }
     catch (error)
     {
-      if(error.name === "SequelizeValidationError")
-      {
-        res.status(400).json({answer: "Sequelize it yo"});
-      }
+      console.log(error.name);
+      console.log(error);
     }
   }
+}));
+
+// Created this just to get rid of excess users being created for testing
+router.delete('/users', asyncHandler(async (req, res) => {
+  let user;
+  user = await User.findOne({ where: { emailAddress: req.body.emailAddress}});
+  await user.destroy();
+  res.status(204).end();
 }));
 
 module.exports = router;

@@ -15,6 +15,8 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
+// https://stackoverflow.com/questions/10005939/how-do-i-consume-the-json-post-data-in-an-express-application
+app.use(express.json());
 // TODO setup your api routes here
 app.use('/api', routes);
 app.use('/api', routes2);
