@@ -21,6 +21,7 @@ function asyncHandler(cb){
   }
 }
 
+// Middleware to for user authentication
 const authenticateUser = async (req, res, next) => {
   let message = null;
 
@@ -29,17 +30,14 @@ const authenticateUser = async (req, res, next) => {
 
   // If the user's credentials are available...
   if (credentials) {
-    // Attempt to retrieve the user from the data store
+    // Attempt to retrieve the user via email by user's "key" from Authorization header
     // by their username (i.e. the user's "key"
-    // from the Authorization header).
-    //const user = users.find(u => u.username === credentials.name);
     const user = await User.findOne( {where: {emailAddress: credentials.name} });
 
     // If a user was successfully retrieved from the data store...
     if (user) {
       // Use the bcryptjs npm package to compare the user's password
       // (from the Authorization header) to the user's password
-      // that was retrieved from the data store.
       const authenticated = bcryptjs
         .compareSync(credentials.pass, user.password);
 
@@ -79,6 +77,7 @@ const authenticateUser = async (req, res, next) => {
 };
 
 // Getting current authenticated user
+// First runs authenticateUser middleware before responding with json formatted data that avoids returning password, createdAt and updatedAt
 router.get('/users', authenticateUser, (req, res) => {
   const user = req.currentUser;
 
@@ -89,18 +88,22 @@ router.get('/users', authenticateUser, (req, res) => {
 });
 
 // Creates a user, sets the Location header to "/" and returns no content
+// If there are errors, it returns those errors
 router.post('/users', [
   check('firstName')
     .exists()
-    .withMessage('firstName is needed'),
+    .withMessage('"firstName" value is needed'),
   check('emailAddress')
     .exists()
-    .withMessage('Email is needed')
+    .withMessage('"emailAddress" value is needed')
     .isEmail()
-    .withMessage('Valid email address for "email"'),
+    .withMessage('Valid email address for "emailAddress" is needed'),
   check('lastName')
     .exists()
-    .withMessage('Lastname needed')
+    .withMessage('"lastName" value is needed'),
+  check('password')
+    .exists()
+    .withMessage('"password" value is needed')
 ], asyncHandler(async (req,res) => {
   const errors = validationResult(req);
 
@@ -111,27 +114,35 @@ router.post('/users', [
   else {
     let user;
     try{
-      req.body.password = await bcryptjs.hash(req.body.password, 10);
-      user = await User.create(req.body);
-      //user.password = await bcryptjs.hash(user.password, 10);
-      
-      // https://expressjs.com/en/api.html#res
-      res.status(201).location('/').end();
+      const tempUser = await User.findOne( {where: {emailAddress: req.body.emailAddress} });
+      if (tempUser)
+      {
+        res.status(403).json({ ExistingUser: "emailAddress value has already been used"});
+      }
+      else
+      {
+        req.body.password = await bcryptjs.hash(req.body.password, 10);
+        user = await User.create(req.body);
+        
+        // https://expressjs.com/en/api.html#res <-- How to set location header
+        res.status(201).location('/').end();
+      }
     }
     catch (error)
     {
-      console.log(error.name);
-      console.log(error);
+      res.status(500).json({ errorName: error.name });
     }
   }
 }));
 
 // Created this just to get rid of excess users being created for testing
+/*
 router.delete('/users', asyncHandler(async (req, res) => {
   let user;
-  user = await User.findOne({ where: { emailAddress: req.body.emailAddress}});
+  user = await User.findOne({ where: { emailAddress: req.body.emailAddress } });
   await user.destroy();
   res.status(204).end();
 }));
+*/
 
 module.exports = router;

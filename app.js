@@ -1,4 +1,9 @@
 'use strict';
+/* 
+PROJECT 9: REST API
+- Aiming for Exceeds!
+*/
+
 
 // load modules
 const express = require('express');
@@ -54,19 +59,3 @@ app.set('port', process.env.PORT || 5000);
 const server = app.listen(app.get('port'), () => {
   console.log(`Express server is listening on port ${server.address().port}`);
 });
-
-// const Sequelize = require('sequelize');
-
-// const sequelize = new Sequelize({
-//   dialect: 'sqlite',
-//   storage: 'fsjstd-restapi.db'
-// });
-
-// (async () => {
-//   try {
-//     await sequelize.authenticate();
-//     console.log('Connection to the database successful!');
-//   } catch (error) {
-//     console.error('Error connecting to the database: ', error);
-//   }
-// })();
