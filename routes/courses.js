@@ -169,7 +169,7 @@ router.put('/courses/:id', authenticateUser, [
         if (user.id === course.userId)
         {
           await course.update(req.body);
-          res.status(201).end();
+          res.status(204).end();
         }
         else
         {
