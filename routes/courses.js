@@ -145,11 +145,9 @@ router.post('/courses', authenticateUser, [
 // https://express-validator.github.io/docs/validation-chain-api.html
 router.put('/courses/:id', authenticateUser, [
   check('title')
-    .if(check('title').exists()) // Checks to see if the title is being included in the first place
     .exists( {checkFalsy: true} ) // Checks to make sure, if the value is being included it isnt an invalid value such as an empty string
     .withMessage('"title" value is needed'),
   check('description')
-    .if(check('title').exists())
     .exists( {checkFalsy: true} )
     .withMessage('"description" value is needed')
 ], asyncHandler(async (req, res) => {
